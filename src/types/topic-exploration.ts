@@ -1,3 +1,5 @@
+import type { PaperVariables } from "./research-paper";
+
 // ── 주제 탐색 결과 저장 (2026-07-05 사용자 요청: 일시별 저장·비교) ──
 
 export interface TopicExplorationFrame {
@@ -44,6 +46,27 @@ export interface TopicSeed {
   approach?: string;
 }
 
+/**
+ * 주제 심화 질의응답 결과 (P1, 2026-08-10).
+ * 저장한 주제 방향을 변인·대상·맥락·연구문제로 구체화한 한 덩어리.
+ * `PaperVariables`를 그대로 재사용해 연구보고서 variables 필드와 무변환 연동한다.
+ * 모두 옵셔널 — 구버전(deepDive 없는) 저장분과 호환.
+ */
+export interface TopicDeepDive {
+  /** 독립·종속·매개·조절·통제 변인 (연구보고서 variables 와 동일 구조) */
+  variables?: PaperVariables;
+  /** 연구 대상 구체화 (→ 보고서 scopeAudience) */
+  population?: string;
+  /** 환경·기간·도구 (→ 보고서 scopeContext) */
+  context?: string;
+  /** 제외 범위 (→ 보고서 scopeExclusion) */
+  exclusion?: string;
+  /** 연구문제 초안 (→ 보고서 researchQuestions) */
+  researchQuestions?: string[];
+  /** 마지막 갱신 시각 (ISO) */
+  updatedAt?: string;
+}
+
 export interface SavedTopicDirection {
   /** 안정 id — 저장 시점 생성 */
   id: string;
@@ -59,4 +82,6 @@ export interface SavedTopicDirection {
   isCore?: boolean;
   /** 저장 시점 탐색 근거 — 심화·보고서 연동 입력 (P0-1, 2026-08-05) */
   seed?: TopicSeed;
+  /** 주제 심화 질의응답 결과 — 변인·대상·맥락·연구문제 (P1, 2026-08-10) */
+  deepDive?: TopicDeepDive;
 }

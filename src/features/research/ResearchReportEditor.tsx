@@ -1318,11 +1318,21 @@ function Field11Context({ form, setField, readOnly }: FieldStepProps) {
             fieldSubject: form.fieldSubject,
             fieldAudience: form.fieldAudience,
             researchApproach: form.researchApproach,
+            scopeAudience: form.scopeAudience,
+            scopeContext: form.scopeContext,
+            scopeExclusion: form.scopeExclusion,
+            variables: form.variables,
+            researchQuestions: form.researchQuestions,
           }}
           onApply={(patch) => {
             if (patch.fieldSubject !== undefined) setField("fieldSubject", patch.fieldSubject);
             if (patch.fieldAudience !== undefined) setField("fieldAudience", patch.fieldAudience);
             if (patch.researchApproach !== undefined) setField("researchApproach", patch.researchApproach);
+            if (patch.scopeAudience !== undefined) setField("scopeAudience", patch.scopeAudience);
+            if (patch.scopeContext !== undefined) setField("scopeContext", patch.scopeContext);
+            if (patch.scopeExclusion !== undefined) setField("scopeExclusion", patch.scopeExclusion);
+            if (patch.variables !== undefined) setField("variables", patch.variables);
+            if (patch.researchQuestions !== undefined) setField("researchQuestions", patch.researchQuestions);
           }}
         />
         <div className="grid gap-4 sm:grid-cols-2">

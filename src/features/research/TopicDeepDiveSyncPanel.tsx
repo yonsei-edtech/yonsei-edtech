@@ -1,21 +1,26 @@
 "use client";
 
 /**
- * TopicDeepDiveSyncPanel — 핵심 주제(주제 탐색) → 연구보고서 불러오기 패널 (P0-2, 2026-08-05)
+ * TopicDeepDiveSyncPanel — 핵심 주제(주제 탐색·심화) → 연구보고서 불러오기 패널
+ *  (P0-2 최소매핑 2026-08-05 → P1-2 전 필드 매핑 2026-08-10)
  *
- * 주제 탐색에서 저장·지정한 "핵심 주제"의 근거(seed: 대상·소재·접근)를 읽어
+ * 주제 탐색에서 지정한 "핵심 주제"의 근거(seed)와 심화 결과(deepDive)를 읽어
  * 연구보고서의 대응 필드를 채운다. ResearchQuestionSyncPanel/VariableSyncPanel 의
  * import/append 비파괴 패턴을 따른다 — **빈 칸만 채우고, 사용자가 이미 입력한 값은 덮어쓰지 않는다.**
  *
- * 최소 매핑(P0-2): seed.topic → fieldSubject, seed.target → fieldAudience,
- *                  seed.approach → researchApproach. (전 필드 매핑은 P1-2에서 확장)
- * 데이터: users.savedTopicDirections[].seed (신규 컬렉션·rules 불필요).
+ * 매핑:
+ *  - seed.topic → fieldSubject, seed.target → fieldAudience, seed.approach → researchApproach (P0-2)
+ *  - deepDive.variables → variables (카테고리별 빈 칸만), deepDive.population → scopeAudience,
+ *    deepDive.context → scopeContext, deepDive.exclusion → scopeExclusion,
+ *    deepDive.researchQuestions → researchQuestions (없는 항목만 append) (P1-2)
+ * 데이터: users.savedTopicDirections[].{seed,deepDive} (신규 컬렉션·rules 불필요).
  */
 
 import { Sparkles, ListPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useCoreTopic } from "@/features/research/topic-explorer/useSavedTopics";
 import { RESEARCH_APPROACH_LABELS, type ResearchApproach } from "@/types/research-report";
+import type { PaperVariables } from "@/types";
 
 /** 주제 탐색 접근 라벨(양적/질적/혼합/개발·설계) → 보고서 연구 접근 패러다임. */
 function mapApproach(approach: string | undefined): ResearchApproach {
@@ -33,16 +38,43 @@ function mapApproach(approach: string | undefined): ResearchApproach {
   }
 }
 
+const VAR_META: { key: keyof PaperVariables; label: string }[] = [
+  { key: "independent", label: "독립" },
+  { key: "dependent", label: "종속" },
+  { key: "mediator", label: "매개" },
+  { key: "moderator", label: "조절" },
+  { key: "control", label: "통제" },
+];
+
+function catValues(v: PaperVariables | undefined, key: keyof PaperVariables): string[] {
+  const arr = v?.[key];
+  return Array.isArray(arr) ? arr.map((s) => String(s).trim()).filter(Boolean) : [];
+}
+
 export interface DeepDivePatch {
   fieldSubject?: string;
   fieldAudience?: string;
   researchApproach?: ResearchApproach;
+  variables?: PaperVariables;
+  scopeAudience?: string;
+  scopeContext?: string;
+  scopeExclusion?: string;
+  researchQuestions?: string[];
 }
 
 interface Props {
   readOnly?: boolean;
   /** 현재 보고서 값 — 빈 칸 판정용 */
-  current: { fieldSubject: string; fieldAudience: string; researchApproach: ResearchApproach };
+  current: {
+    fieldSubject: string;
+    fieldAudience: string;
+    researchApproach: ResearchApproach;
+    scopeAudience: string;
+    scopeContext: string;
+    scopeExclusion: string;
+    variables: PaperVariables;
+    researchQuestions: string[];
+  };
   onApply: (patch: DeepDivePatch) => void;
 }
 
@@ -51,24 +83,85 @@ export default function TopicDeepDiveSyncPanel({ readOnly = false, current, onAp
   if (readOnly || !core) return null;
 
   const seed = core.seed;
+  const dd = core.deepDive;
+
   const topicVal = (seed?.topic ?? "").trim();
   const targetVal = (seed?.target ?? seed?.subjectTerms?.[0] ?? "").trim();
   const approachVal = mapApproach(seed?.approach ?? core.approach);
   const approachLabel = approachVal ? RESEARCH_APPROACH_LABELS[approachVal] : "";
+
+  const populationVal = (dd?.population ?? "").trim();
+  const contextVal = (dd?.context ?? "").trim();
+  const exclusionVal = (dd?.exclusion ?? "").trim();
+  const ddQuestions = Array.isArray(dd?.researchQuestions)
+    ? dd!.researchQuestions.map((q) => q.trim()).filter(Boolean)
+    : [];
 
   // 비파괴: 값이 있고(offer) 현재 비어 있는(empty) 필드만 채움
   const patch: DeepDivePatch = {};
   if (topicVal && !current.fieldSubject.trim()) patch.fieldSubject = topicVal;
   if (targetVal && !current.fieldAudience.trim()) patch.fieldAudience = targetVal;
   if (approachVal && !current.researchApproach) patch.researchApproach = approachVal;
+  if (populationVal && !current.scopeAudience.trim()) patch.scopeAudience = populationVal;
+  if (contextVal && !current.scopeContext.trim()) patch.scopeContext = contextVal;
+  if (exclusionVal && !current.scopeExclusion.trim()) patch.scopeExclusion = exclusionVal;
+
+  // 변인: 카테고리별로 현재 비어 있을 때만 채움 (전체 객체 대입이므로 병합본 계산)
+  const filledVarLabels: string[] = [];
+  const mergedVars: PaperVariables = {};
+  let varsChanged = false;
+  for (const { key, label } of VAR_META) {
+    const cur = catValues(current.variables, key);
+    const offered = catValues(dd?.variables, key);
+    if (cur.length > 0) {
+      mergedVars[key] = cur;
+    } else if (offered.length > 0) {
+      mergedVars[key] = offered;
+      filledVarLabels.push(label);
+      varsChanged = true;
+    }
+  }
+  if (varsChanged) patch.variables = mergedVars;
+
+  // 연구문제: 현재 목록에 없는 항목만 append (비었으면 import)
+  const curQuestions = current.researchQuestions.map((q) => q.trim()).filter(Boolean);
+  const newQuestions = ddQuestions.filter((q) => !curQuestions.includes(q));
+  if (newQuestions.length > 0) {
+    patch.researchQuestions = [...current.researchQuestions, ...newQuestions];
+  }
+
   const fillKeys = Object.keys(patch) as (keyof DeepDivePatch)[];
   const hasFill = fillKeys.length > 0;
 
   // 미리보기 항목 (제안값 + 이미 채워졌는지)
   const rows: { label: string; value: string; willFill: boolean }[] = [];
-  if (topicVal) rows.push({ label: "교과/학습 주제", value: topicVal, willFill: !current.fieldSubject.trim() });
-  if (targetVal) rows.push({ label: "대상 학습자", value: targetVal, willFill: !current.fieldAudience.trim() });
-  if (approachLabel) rows.push({ label: "연구 접근", value: approachLabel, willFill: !current.researchApproach });
+  if (topicVal)
+    rows.push({ label: "교과/학습 주제", value: topicVal, willFill: !current.fieldSubject.trim() });
+  if (targetVal)
+    rows.push({ label: "대상 학습자", value: targetVal, willFill: !current.fieldAudience.trim() });
+  if (approachLabel)
+    rows.push({ label: "연구 접근", value: approachLabel, willFill: !current.researchApproach });
+  {
+    const offeredVarLabels = VAR_META.filter((m) => catValues(dd?.variables, m.key).length > 0);
+    if (offeredVarLabels.length > 0)
+      rows.push({
+        label: "연구 변인",
+        value: offeredVarLabels.map((m) => m.label).join("·") + " 변인",
+        willFill: filledVarLabels.length > 0,
+      });
+  }
+  if (populationVal)
+    rows.push({ label: "연구 대상", value: populationVal, willFill: !current.scopeAudience.trim() });
+  if (contextVal)
+    rows.push({ label: "맥락", value: contextVal, willFill: !current.scopeContext.trim() });
+  if (exclusionVal)
+    rows.push({ label: "제외 범위", value: exclusionVal, willFill: !current.scopeExclusion.trim() });
+  if (ddQuestions.length > 0)
+    rows.push({
+      label: "연구문제",
+      value: `${ddQuestions.length}개 중 ${newQuestions.length}개 추가`,
+      willFill: newQuestions.length > 0,
+    });
 
   function handleImport() {
     if (!hasFill) return;
@@ -84,7 +177,7 @@ export default function TopicDeepDiveSyncPanel({ readOnly = false, current, onAp
           <div className="min-w-0">
             <p className="text-xs font-semibold text-foreground">핵심 주제에서 불러오기</p>
             <p className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">
-              주제 탐색에서 지정한 핵심 주제 &ldquo;{core.label}&rdquo; 의 대상·소재·접근을 아래 빈 칸에 채웁니다.
+              주제 탐색·심화에서 지정한 핵심 주제 &ldquo;{core.label}&rdquo; 의 대상·소재·접근·변인·연구문제를 아래 빈 칸에 채웁니다.
             </p>
           </div>
         </div>

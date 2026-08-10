@@ -14,7 +14,7 @@ import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { profilesApi } from "@/lib/bkend";
 import { useAuthStore } from "@/features/auth/auth-store";
-import type { SavedTopicDirection, TopicSeed } from "@/types";
+import type { SavedTopicDirection, TopicSeed, TopicDeepDive } from "@/types";
 
 function newId(): string {
   try {
@@ -37,6 +37,8 @@ export interface UseSavedTopics {
   remove: (id: string) => Promise<void>;
   /** 핵심 주제 토글 — 새로 지정 시 기존 핵심 자동 해제 (단일 보장) */
   toggleCore: (id: string) => Promise<void>;
+  /** 주제 심화 결과 저장 — 해당 항목의 deepDive 만 병합, 나머지 항목 불변 (P1) */
+  updateDeepDive: (id: string, deepDive: TopicDeepDive) => Promise<void>;
 }
 
 export function useSavedTopics(): UseSavedTopics {
@@ -110,7 +112,20 @@ export function useSavedTopics(): UseSavedTopics {
     [saved, persist],
   );
 
-  return { saved, coreTopic, isSaved, save, remove, toggleCore };
+  const updateDeepDive = useCallback(
+    async (id: string, deepDive: TopicDeepDive) => {
+      if (!saved.some((t) => t.id === id)) return;
+      const next = saved.map((t) =>
+        t.id === id
+          ? { ...t, deepDive: { ...deepDive, updatedAt: new Date().toISOString() } }
+          : t,
+      );
+      await persist(next, "주제 심화 내용을 저장했어요.");
+    },
+    [saved, persist],
+  );
+
+  return { saved, coreTopic, isSaved, save, remove, toggleCore, updateDeepDive };
 }
 
 /** 읽기 전용 — 다른 화면(논문 읽기·연구보고서 등)에서 핵심 주제만 조회 */

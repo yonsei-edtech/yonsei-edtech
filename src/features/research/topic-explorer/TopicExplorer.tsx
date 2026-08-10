@@ -18,13 +18,21 @@ import {
   ArrowLeft, ArrowRight, RotateCcw, Lightbulb, CheckCircle2,
   GraduationCap, BookMarked, Compass, ClipboardCheck, Copy,
   AlertTriangle, Sparkles, ExternalLink, History, Trash2, X,
-  Bookmark, BookmarkCheck, Star,
+  Bookmark, BookmarkCheck, Star, Target,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import TopicDeepDive from "./TopicDeepDive";
 import { alumniThesesApi, archiveConceptsApi, diagnosticResultsApi, topicExplorationsApi } from "@/lib/bkend";
 import type { User } from "@/types";
 import { OCCUPATION_LABELS } from "@/types";
@@ -221,6 +229,17 @@ export default function TopicExplorer({ user }: Props) {
 
   // ── 추천 주제 방향 저장 · 핵심 지정 (2026-07-30 사용자 요청) ──
   const { saved: savedTopics, coreTopic, isSaved, save: saveTopic, remove: removeTopic, toggleCore } = useSavedTopics();
+
+  // ── 주제 심화 질의응답 (P1, 2026-08-10) ──
+  const [deepDiveTopicId, setDeepDiveTopicId] = useState<string | null>(null);
+  function openDeepDive(sentence: string) {
+    const t = savedTopics.find((s) => s.label === sentence);
+    if (!t) {
+      toast.info("먼저 이 주제를 저장한 뒤 심화할 수 있어요.");
+      return;
+    }
+    setDeepDiveTopicId(t.id);
+  }
 
   return (
     <div className="space-y-4">
@@ -458,6 +477,14 @@ export default function TopicExplorer({ user }: Props) {
                           className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                         >
                           <Copy size={11} /> 복사
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openDeepDive(f.sentence)}
+                          title={isSaved(f.sentence) ? "변인·대상·맥락·연구문제로 좁히기" : "먼저 저장하면 심화할 수 있어요"}
+                          className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                        >
+                          <Target size={11} /> 더 좁히기
                         </button>
                       </div>
                     </div>
@@ -697,6 +724,15 @@ export default function TopicExplorer({ user }: Props) {
                       <div className="flex shrink-0 items-center gap-1">
                         <button
                           type="button"
+                          onClick={() => setDeepDiveTopicId(t.id)}
+                          aria-label="주제 심화 — 더 좁히기"
+                          title="변인·대상·맥락·연구문제로 좁히기"
+                          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+                        >
+                          <Target size={15} className={t.deepDive ? "text-primary" : ""} />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => void toggleCore(t.id)}
                           aria-pressed={isCore}
                           aria-label={isCore ? "핵심 주제 해제" : "핵심 주제로 지정"}
@@ -727,6 +763,30 @@ export default function TopicExplorer({ user }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {/* 주제 심화 모달 (P1) — topicId 변경 시 폼 재초기화 위해 key 부여 */}
+      <Dialog
+        open={deepDiveTopicId != null}
+        onOpenChange={(o) => {
+          if (!o) setDeepDiveTopicId(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>주제 심화 질의응답</DialogTitle>
+            <DialogDescription>
+              저장한 주제를 변인·대상·맥락·연구문제로 좁혀 연구보고서에 바로 연결하세요.
+            </DialogDescription>
+          </DialogHeader>
+          {deepDiveTopicId && (
+            <TopicDeepDive
+              key={deepDiveTopicId}
+              topicId={deepDiveTopicId}
+              onDone={() => setDeepDiveTopicId(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
