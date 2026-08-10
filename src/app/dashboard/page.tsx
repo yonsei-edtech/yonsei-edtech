@@ -641,12 +641,17 @@ function DashboardContent() {
             Kudos·StageRec)이 개별 나열되어 조건이 겹치면 2~3개가 동시 노출되던 것을,
             CoachingSlot 이 시점당 우선순위 최고 1개만 렌더한다(넛지 피로 해소).
             각 카드의 판정·닫기·페르소나 게이트는 그대로 재사용(predicate 기반 선택).
-            WidgetBoundary 로 슬롯 격리 + empty:hidden 유령 여백 제거. */}
-        <div className="empty:hidden">
-          <WidgetBoundary label="coaching-slot">
-            <CoachingSlot />
-          </WidgetBoundary>
-        </div>
+            WidgetBoundary 로 슬롯 격리 + empty:hidden 유령 여백 제거.
+            P1-4(2026-08-10): 레이아웃 시스템의 단일 키 `coachingSlot` 으로 편입 —
+            고정 스택 위치는 유지하되(넛지는 상단 노출이 생명) 편집모드·프리셋으로 on/off.
+            widgetMap 에는 넣지 않아 그리드 재배치 대상은 아님(staffAlerts 와 동일 패턴). */}
+        {isWidgetVisible(layout, "coachingSlot") && (
+          <div className="empty:hidden">
+            <WidgetBoundary label="coaching-slot">
+              <CoachingSlot />
+            </WidgetBoundary>
+          </div>
+        )}
 
         {/* C-1: 개강 주간(D-7~D+14) 자동 노출 재활성화 배너 */}
         <SemesterKickoffBanner />

@@ -31,7 +31,8 @@ export type DashboardWidgetKey =
   | "thesisProgress"
   | "semesterCalendar"
   | "seminars"
-  | "staffAlerts";
+  | "staffAlerts"
+  | "coachingSlot";
 
 export interface DashboardWidgetConfig {
   key: DashboardWidgetKey;
@@ -128,6 +129,10 @@ export const DASHBOARD_WIDGET_META: Record<
     label: "운영 알림",
     description: "운영진 전용 알림.",
   },
+  coachingSlot: {
+    label: "코칭·넛지 카드",
+    description: "정체·목표·복귀·논문 단계 등 지금 가장 필요한 코칭 한 가지를 상단에 보여줍니다.",
+  },
 };
 
 /**
@@ -162,6 +167,7 @@ export const DASHBOARD_WIDGET_KEYS: DashboardWidgetKey[] = [
   "semesterCalendar",
   "seminars",
   "staffAlerts",
+  "coachingSlot",
 ];
 
 /**
@@ -182,6 +188,7 @@ export const DEFAULT_VISIBLE_WIDGETS: Set<DashboardWidgetKey> = new Set([
   "semesterCalendar",
   "seminars",
   "staffAlerts", // 역할 게이트로 운영진에게만 표시됨
+  "coachingSlot", // 코칭·넛지 단일 슬롯 — 기본 노출(편집모드에서 끌 수 있음)
 ]);
 
 /** 핵심 위젯만 visible=true, order=인덱스인 기본 레이아웃 */

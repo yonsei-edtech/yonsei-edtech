@@ -81,6 +81,7 @@ export function buildPresetLayout(preset: DashboardPresetId): DashboardLayout {
     case "student": {
       const studentOrder: DashboardWidgetKey[] = [
         "nextActionBanner",
+        "coachingSlot",
         "dailyTimeline",
         "myTodos",
         "myAcademicActivities",
@@ -110,6 +111,7 @@ export function buildPresetLayout(preset: DashboardPresetId): DashboardLayout {
     case "staff": {
       const staffOrder: DashboardWidgetKey[] = [
         "staffAlerts",
+        "coachingSlot",
         "nextActionBanner",
         "statCards",
         "notices",
@@ -139,6 +141,7 @@ export function buildPresetLayout(preset: DashboardPresetId): DashboardLayout {
     case "research": {
       const researchOrder: DashboardWidgetKey[] = [
         "nextActionBanner",
+        "coachingSlot",
         "diagnosisReadiness",
         "myAcademicActivities",
         "spacedRepetition",
