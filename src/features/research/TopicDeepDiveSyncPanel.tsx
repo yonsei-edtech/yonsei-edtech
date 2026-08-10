@@ -21,22 +21,7 @@ import { toast } from "sonner";
 import { useCoreTopic } from "@/features/research/topic-explorer/useSavedTopics";
 import { RESEARCH_APPROACH_LABELS, type ResearchApproach } from "@/types/research-report";
 import type { PaperVariables } from "@/types";
-
-/** 주제 탐색 접근 라벨(양적/질적/혼합/개발·설계) → 보고서 연구 접근 패러다임. */
-function mapApproach(approach: string | undefined): ResearchApproach {
-  switch (approach) {
-    case "양적":
-      return "analytical";
-    case "질적":
-      return "generative";
-    case "혼합":
-      return "mixed_methods";
-    case "개발·설계":
-      return "generative";
-    default:
-      return "";
-  }
-}
+import { mapApproach } from "./topic-report-map";
 
 const VAR_META: { key: keyof PaperVariables; label: string }[] = [
   { key: "independent", label: "독립" },
@@ -64,16 +49,19 @@ export interface DeepDivePatch {
 
 interface Props {
   readOnly?: boolean;
-  /** 현재 보고서 값 — 빈 칸 판정용 */
+  /**
+   * 현재 문서 값 — 빈 칸 판정용. 각 필드는 옵셔널: 제공된(≠undefined) 필드만 매핑·미리보기 대상.
+   * (보고서는 전 필드 전달, 계획서는 variables·researchQuestions 만 전달)
+   */
   current: {
-    fieldSubject: string;
-    fieldAudience: string;
-    researchApproach: ResearchApproach;
-    scopeAudience: string;
-    scopeContext: string;
-    scopeExclusion: string;
-    variables: PaperVariables;
-    researchQuestions: string[];
+    fieldSubject?: string;
+    fieldAudience?: string;
+    researchApproach?: ResearchApproach;
+    scopeAudience?: string;
+    scopeContext?: string;
+    scopeExclusion?: string;
+    variables?: PaperVariables;
+    researchQuestions?: string[];
   };
   onApply: (patch: DeepDivePatch) => void;
 }
@@ -97,37 +85,48 @@ export default function TopicDeepDiveSyncPanel({ readOnly = false, current, onAp
     ? dd!.researchQuestions.map((q) => q.trim()).filter(Boolean)
     : [];
 
-  // 비파괴: 값이 있고(offer) 현재 비어 있는(empty) 필드만 채움
+  // 비파괴: 값이 있고(offer) 해당 필드가 제공됐으며(≠undefined) 현재 비어 있을 때만 채움
   const patch: DeepDivePatch = {};
-  if (topicVal && !current.fieldSubject.trim()) patch.fieldSubject = topicVal;
-  if (targetVal && !current.fieldAudience.trim()) patch.fieldAudience = targetVal;
-  if (approachVal && !current.researchApproach) patch.researchApproach = approachVal;
-  if (populationVal && !current.scopeAudience.trim()) patch.scopeAudience = populationVal;
-  if (contextVal && !current.scopeContext.trim()) patch.scopeContext = contextVal;
-  if (exclusionVal && !current.scopeExclusion.trim()) patch.scopeExclusion = exclusionVal;
+  if (topicVal && current.fieldSubject !== undefined && !current.fieldSubject.trim())
+    patch.fieldSubject = topicVal;
+  if (targetVal && current.fieldAudience !== undefined && !current.fieldAudience.trim())
+    patch.fieldAudience = targetVal;
+  if (approachVal && current.researchApproach !== undefined && !current.researchApproach)
+    patch.researchApproach = approachVal;
+  if (populationVal && current.scopeAudience !== undefined && !current.scopeAudience.trim())
+    patch.scopeAudience = populationVal;
+  if (contextVal && current.scopeContext !== undefined && !current.scopeContext.trim())
+    patch.scopeContext = contextVal;
+  if (exclusionVal && current.scopeExclusion !== undefined && !current.scopeExclusion.trim())
+    patch.scopeExclusion = exclusionVal;
 
-  // 변인: 카테고리별로 현재 비어 있을 때만 채움 (전체 객체 대입이므로 병합본 계산)
+  // 변인: 제공됐을 때만, 카테고리별로 현재 비어 있으면 채움 (전체 객체 대입이므로 병합본 계산)
   const filledVarLabels: string[] = [];
-  const mergedVars: PaperVariables = {};
-  let varsChanged = false;
-  for (const { key, label } of VAR_META) {
-    const cur = catValues(current.variables, key);
-    const offered = catValues(dd?.variables, key);
-    if (cur.length > 0) {
-      mergedVars[key] = cur;
-    } else if (offered.length > 0) {
-      mergedVars[key] = offered;
-      filledVarLabels.push(label);
-      varsChanged = true;
+  if (current.variables !== undefined) {
+    const mergedVars: PaperVariables = {};
+    let varsChanged = false;
+    for (const { key, label } of VAR_META) {
+      const cur = catValues(current.variables, key);
+      const offered = catValues(dd?.variables, key);
+      if (cur.length > 0) {
+        mergedVars[key] = cur;
+      } else if (offered.length > 0) {
+        mergedVars[key] = offered;
+        filledVarLabels.push(label);
+        varsChanged = true;
+      }
     }
+    if (varsChanged) patch.variables = mergedVars;
   }
-  if (varsChanged) patch.variables = mergedVars;
 
-  // 연구문제: 현재 목록에 없는 항목만 append (비었으면 import)
-  const curQuestions = current.researchQuestions.map((q) => q.trim()).filter(Boolean);
-  const newQuestions = ddQuestions.filter((q) => !curQuestions.includes(q));
-  if (newQuestions.length > 0) {
-    patch.researchQuestions = [...current.researchQuestions, ...newQuestions];
+  // 연구문제: 제공됐을 때만, 현재 목록에 없는 항목만 append (비었으면 import)
+  let newQuestions: string[] = [];
+  if (current.researchQuestions !== undefined) {
+    const curQuestions = current.researchQuestions.map((q) => q.trim()).filter(Boolean);
+    newQuestions = ddQuestions.filter((q) => !curQuestions.includes(q));
+    if (newQuestions.length > 0) {
+      patch.researchQuestions = [...current.researchQuestions, ...newQuestions];
+    }
   }
 
   const fillKeys = Object.keys(patch) as (keyof DeepDivePatch)[];
@@ -135,13 +134,13 @@ export default function TopicDeepDiveSyncPanel({ readOnly = false, current, onAp
 
   // 미리보기 항목 (제안값 + 이미 채워졌는지)
   const rows: { label: string; value: string; willFill: boolean }[] = [];
-  if (topicVal)
+  if (topicVal && current.fieldSubject !== undefined)
     rows.push({ label: "교과/학습 주제", value: topicVal, willFill: !current.fieldSubject.trim() });
-  if (targetVal)
+  if (targetVal && current.fieldAudience !== undefined)
     rows.push({ label: "대상 학습자", value: targetVal, willFill: !current.fieldAudience.trim() });
-  if (approachLabel)
+  if (approachLabel && current.researchApproach !== undefined)
     rows.push({ label: "연구 접근", value: approachLabel, willFill: !current.researchApproach });
-  {
+  if (current.variables !== undefined) {
     const offeredVarLabels = VAR_META.filter((m) => catValues(dd?.variables, m.key).length > 0);
     if (offeredVarLabels.length > 0)
       rows.push({
@@ -150,13 +149,13 @@ export default function TopicDeepDiveSyncPanel({ readOnly = false, current, onAp
         willFill: filledVarLabels.length > 0,
       });
   }
-  if (populationVal)
+  if (populationVal && current.scopeAudience !== undefined)
     rows.push({ label: "연구 대상", value: populationVal, willFill: !current.scopeAudience.trim() });
-  if (contextVal)
+  if (contextVal && current.scopeContext !== undefined)
     rows.push({ label: "맥락", value: contextVal, willFill: !current.scopeContext.trim() });
-  if (exclusionVal)
+  if (exclusionVal && current.scopeExclusion !== undefined)
     rows.push({ label: "제외 범위", value: exclusionVal, willFill: !current.scopeExclusion.trim() });
-  if (ddQuestions.length > 0)
+  if (ddQuestions.length > 0 && current.researchQuestions !== undefined)
     rows.push({
       label: "연구문제",
       value: `${ddQuestions.length}개 중 ${newQuestions.length}개 추가`,

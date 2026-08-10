@@ -36,6 +36,8 @@ import ResearchQuestionSyncPanel from "./ResearchQuestionSyncPanel";
 import TopicDeepDiveSyncPanel from "./TopicDeepDiveSyncPanel";
 import ResearchJourneyGuide from "./ResearchJourneyGuide";
 import { asArray, normalizeVariables } from "./normalize-arrays";
+import { useCoreTopic } from "@/features/research/topic-explorer/useSavedTopics";
+import { coreTopicToReportSeed } from "./topic-report-map";
 
 interface Props {
   user: User;
@@ -588,6 +590,7 @@ export default function ResearchReportEditor({ user, readOnly = false }: Props) 
   const update = useUpdateResearchReport();
   const logActivity = useLogWritingActivity();
   const { papers } = useResearchPapers(user.id);
+  const coreTopic = useCoreTopic();
 
   const [form, setForm] = useState<FormState>(EMPTY);
   const [hydrated, setHydrated] = useState(false);
@@ -603,8 +606,9 @@ export default function ResearchReportEditor({ user, readOnly = false }: Props) 
   useEffect(() => {
     if (readOnly || isLoading || report || ensureTriggeredRef.current) return;
     ensureTriggeredRef.current = true;
-    ensure.mutate(user.id);
-  }, [report, isLoading, readOnly, user.id, ensure]);
+    // 빈 문서(신규) 최초 생성 시에만 핵심 주제로 시드 — 기존 문서엔 미적용(비파괴)
+    ensure.mutate({ userId: user.id, seed: coreTopicToReportSeed(coreTopic) });
+  }, [report, isLoading, readOnly, user.id, ensure, coreTopic]);
 
   useEffect(() => {
     if (report && !hydrated) {

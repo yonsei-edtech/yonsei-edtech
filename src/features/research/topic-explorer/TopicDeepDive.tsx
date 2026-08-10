@@ -12,7 +12,8 @@
  */
 
 import { useMemo, useState } from "react";
-import { Sparkles, Plus, Trash2, Wand2, Save } from "lucide-react";
+import Link from "next/link";
+import { Sparkles, Plus, Trash2, Wand2, Save, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import type { PaperVariables, TopicDeepDive as TopicDeepDiveData } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,17 @@ export default function TopicDeepDive({ topicId, onDone }: Props) {
   const topic = useMemo(() => saved.find((t) => t.id === topicId) ?? null, [saved, topicId]);
   const approach = topic?.approach;
   const isQualitative = approach === "질적";
+  // 접근별 연구방법 아카이브 검색어 (없으면 링크 생략)
+  const methodQuery =
+    approach === "질적"
+      ? "질적연구"
+      : approach === "양적"
+        ? "조사연구"
+        : approach === "개발·설계"
+          ? "개발연구"
+          : approach === "혼합"
+            ? "혼합연구"
+            : "";
 
   const [dd, setDd] = useState<TopicDeepDiveData>(() =>
     hydrate(topic?.deepDive, topic?.seed, approach),
@@ -244,6 +256,16 @@ export default function TopicDeepDive({ topicId, onDone }: Props) {
           </button>
         </div>
       </section>
+
+      {methodQuery && (
+        <Link
+          href={`/archive/research-methods?q=${encodeURIComponent(methodQuery)}`}
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+        >
+          <BookOpen size={13} />
+          관련 연구방법 살펴보기 ({methodQuery})
+        </Link>
+      )}
 
       <div className="flex justify-end gap-2 border-t pt-3">
         {onDone && (

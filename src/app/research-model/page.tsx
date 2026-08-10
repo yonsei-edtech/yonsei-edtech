@@ -61,7 +61,7 @@ function ResearchModelContent() {
   async function handleApplyQuestions(questions: string[]) {
     if (!user) return;
     try {
-      const report = await ensureReport.mutateAsync(user.id);
+      const report = await ensureReport.mutateAsync({ userId: user.id });
       await updateReport.mutateAsync({
         id: report.id,
         data: { researchQuestions: questions },

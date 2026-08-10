@@ -25,7 +25,14 @@ export function useResearchReport(userId: string | undefined) {
 export function useEnsureResearchReport() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (userId: string): Promise<ResearchReport> => {
+    mutationFn: async ({
+      userId,
+      seed,
+    }: {
+      userId: string;
+      /** 빈 문서 최초 생성 시에만 적용되는 시드값(비파괴 — 기존 문서엔 미적용) */
+      seed?: Partial<ResearchReport>;
+    }): Promise<ResearchReport> => {
       const res = await researchReportsApi.listByUser(userId);
       if (res.data.length > 0) {
         const sorted = [...res.data].sort((a, b) =>
@@ -65,11 +72,13 @@ export function useEnsureResearchReport() {
         theoryRelationProblem: "",
         theoryRelationRoles: "",
         theoryRelationIntegration: "",
+        // 빈값 defaults 뒤에 시드를 spread — 값이 있는 필드만 덮어씀(비파괴)
+        ...(seed ?? {}),
       });
       return created;
     },
-    onSuccess: (_d, userId) => {
-      qc.invalidateQueries({ queryKey: ["research_report", userId] });
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["research_report", vars.userId] });
     },
   });
 }

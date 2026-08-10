@@ -31,6 +31,7 @@ import { formatApa7 } from "@/lib/apa7";
 import ResearchJourneyGuide from "./ResearchJourneyGuide";
 import ResearchQuestionSyncPanel from "./ResearchQuestionSyncPanel";
 import VariableSyncPanel from "./VariableSyncPanel";
+import TopicDeepDiveSyncPanel from "./TopicDeepDiveSyncPanel";
 import { asArray, normalizeVariables } from "./normalize-arrays";
 
 interface Props {
@@ -852,6 +853,17 @@ export default function ResearchProposalEditor({ user, readOnly = false }: Props
           disabled={readOnly}
         />
       </Section>
+
+      {/* 핵심 주제(주제 탐색·심화) → 변인·연구문제 불러오기 (P2-2) */}
+      <TopicDeepDiveSyncPanel
+        readOnly={readOnly}
+        current={{ variables: form.variables, researchQuestions: form.researchQuestions }}
+        onApply={(patch) => {
+          if (patch.variables !== undefined) setField("variables", patch.variables);
+          if (patch.researchQuestions !== undefined)
+            setField("researchQuestions", patch.researchQuestions);
+        }}
+      />
 
       {/* 연구문제 — 연구 모형에서 자동 생성·반영 */}
       <Section
