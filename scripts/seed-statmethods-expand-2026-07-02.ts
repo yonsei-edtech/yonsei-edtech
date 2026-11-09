@@ -17,7 +17,8 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import * as admin from "firebase-admin";
+import { initializeApp, cert } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
 const APPLY = process.argv.includes("--apply");
 const ROOT = path.resolve(__dirname, "..");
@@ -28,8 +29,9 @@ const envLine = fs
   .find((l) => l.startsWith("FIREBASE_SERVICE_ACCOUNT_KEY="));
 if (!envLine) throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY not found");
 const key = JSON.parse(Buffer.from(envLine.split("=")[1].trim(), "base64").toString());
-admin.initializeApp({ credential: admin.credential.cert(key) });
-const db = admin.firestore();
+// firebase-admin v14: namespace API(admin.credential/admin.firestore) 제거 → 모듈 API 사용
+initializeApp({ credential: cert(key) });
+const db = getFirestore();
 db.settings({ preferRest: true });
 
 const COL = "archive_statistical_methods";

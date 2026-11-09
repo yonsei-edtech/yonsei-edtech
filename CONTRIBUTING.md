@@ -10,7 +10,7 @@
 
 ## 1. 로컬 개발 환경
 
-**필요한 것**: Node.js 20 이상(CI는 20, 24에서도 동작), npm, Git
+**필요한 것**: Node.js 22 이상 (권장 24 — Vercel·CI와 동일), npm, Git
 
 ```bash
 git clone https://github.com/yonsei-edtech/yonsei-edtech.git
