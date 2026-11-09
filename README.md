@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 연세교육공학회 웹사이트
 
-## Getting Started
+연세대학교 교육공학 전공 학회의 공식 웹사이트입니다. 학회 소개·세미나/학술활동·아카이브·논문 연구 지원·운영 콘솔을 제공합니다.
 
-First, run the development server:
+- **서비스**: https://yonsei-edtech.vercel.app
+- **스택**: Next.js (App Router) · TypeScript · Tailwind · Firebase · Vercel
+- **관리**: [`yonsei-edtech`](https://github.com/yonsei-edtech) GitHub 조직
+
+## 빠른 시작
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # 값은 운영진에게 전달받기
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 주요 명령
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| 명령 | 설명 |
+|---|---|
+| `npm run dev` | 개발 서버 |
+| `npm test` | 단위 테스트 (vitest) |
+| `npm run build` | 프로덕션 빌드 (품질 ratchet 포함) |
+| `npm run lint:deadcode` | 미사용 코드 점검 |
+| `npm run deploy:vercel` | 프로덕션 배포 (배포 담당 전용) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 문서
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — 작업 흐름·브랜치/PR 규칙·배포 절차 (**처음 참여 시 필독**)
+- [DESIGN.md](DESIGN.md) — 디자인 토큰·UI 기준
+- [SECURITY.md](SECURITY.md) — 보안 정책
+- `docs/` — 기획·보고서
