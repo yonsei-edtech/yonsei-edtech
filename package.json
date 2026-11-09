@@ -37,7 +37,7 @@
     "d3-selection": "^3.0.1",
     "d3-zoom": "^3.0.1",
     "firebase": "^12.19.0",
-    "firebase-admin": "^14.5.0",
+    "firebase-admin": "^13.8.0",
     "framer-motion": "^12.43.0",
     "html-to-image": "^1.11.13",
     "html2canvas-pro": "^2.6.3",
@@ -91,6 +91,6 @@
     "eslint-plugin-react-hooks": "7.0.1"
   },
   "engines": {
-    "node": ">=22"
+    "node": "24.x"
   }
 }
