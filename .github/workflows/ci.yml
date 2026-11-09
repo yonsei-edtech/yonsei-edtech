@@ -24,9 +24,14 @@ jobs:
       - name: TypeScript type check
         run: npx tsc --noEmit
 
-      - name: Lint
-        run: npm run lint || true # 기존 lint 경고는 빌드 차단하지 않음
+      # ESLint error는 차단, warning은 prebuild의 warning ratchet(증가 금지)이 관리
+      - name: Lint (errors block)
+        run: npx eslint src --quiet
 
+      - name: Unit tests
+        run: npm test
+
+      # prebuild: raw color ratchet + ESLint warning ratchet 포함
       - name: Build
         run: npm run build
         env:
