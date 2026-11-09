@@ -91,6 +91,6 @@
     "eslint-plugin-react-hooks": "7.0.1"
   },
   "engines": {
-    "node": ">=22"
+    "node": "24.x"
   }
 }
