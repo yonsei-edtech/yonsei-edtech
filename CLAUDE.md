@@ -2,7 +2,8 @@
 
 ## 프로젝트 정보
 - **스택**: Next.js (App Router) + TypeScript + Firestore + Vercel
-- **배포**: GitHub Actions → Vercel 자동 배포 (master push)
+- **배포**: `npm run deploy:vercel` (토큰 기반 CLI). GitHub Actions `deploy.yml`은 수동 전용·사용 안 함
+- **레포**: https://github.com/yonsei-edtech/yonsei-edtech (조직 소유, master 보호 — PR 경유. 기여 규칙은 `CONTRIBUTING.md`)
 - **URL**: https://yonsei-edtech.vercel.app
 
 ## 배포 규칙 (필독)
