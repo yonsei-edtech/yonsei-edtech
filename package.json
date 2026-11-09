@@ -80,7 +80,7 @@
     "axe-core": "^4.14.0",
     "dotenv": "^17.4.2",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "16.4.5",
     "knip": "^6.44.1",
     "pdfjs-dist": "^4.10.38",
     "tailwindcss": "^4",
