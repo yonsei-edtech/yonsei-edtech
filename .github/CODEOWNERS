@@ -1,0 +1,17 @@
+# 아래 경로를 수정하는 PR은 maintainers 팀의 리뷰가 필요합니다.
+# (보안 규칙·배포·CI·의존성·인증/권한 로직)
+
+/firestore.rules              @yonsei-edtech/maintainers
+/storage.rules                @yonsei-edtech/maintainers
+/firestore.indexes.json       @yonsei-edtech/maintainers
+/firebase.json                @yonsei-edtech/maintainers
+/vercel.json                  @yonsei-edtech/maintainers
+/.github/                     @yonsei-edtech/maintainers
+/scripts/                     @yonsei-edtech/maintainers
+/package.json                 @yonsei-edtech/maintainers
+/package-lock.json            @yonsei-edtech/maintainers
+/.env.example                 @yonsei-edtech/maintainers
+/src/lib/api-auth.ts          @yonsei-edtech/maintainers
+/src/lib/firebase-admin.ts    @yonsei-edtech/maintainers
+/src/app/api/admin/           @yonsei-edtech/maintainers
+/src/app/api/auth/            @yonsei-edtech/maintainers

@@ -1,0 +1,37 @@
+name: 🐞 버그 신고
+description: 사이트에서 오류나 이상 동작을 발견했을 때
+labels: ["bug"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: 발생한 페이지 주소
+      placeholder: https://yonsei-edtech.vercel.app/mypage
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 무슨 일이 있었나요?
+      description: 기대한 동작과 실제 동작을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 방법
+      placeholder: |
+        1. 로그인
+        2. 마이페이지 → 진단평가 탭 클릭
+        3. 화면이 하얗게 됨
+  - type: dropdown
+    id: env
+    attributes:
+      label: 사용 환경
+      multiple: true
+      options: [PC 크롬, PC 엣지/기타, 모바일 안드로이드, 모바일 아이폰]
+  - type: textarea
+    id: shot
+    attributes:
+      label: 스크린샷 (선택)
+      description: 개인정보(이름·학번·연락처)는 가리고 첨부해주세요.
