@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24 # Vercel 런타임(24.x)과 일치 — firebase-admin 14 는 Node>=22 필요
           cache: npm
 
       - name: Install dependencies
