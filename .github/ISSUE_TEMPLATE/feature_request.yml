@@ -1,0 +1,23 @@
+name: ✨ 기능 제안
+description: 새 기능이나 개선 아이디어
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 어떤 문제를 해결하나요?
+      description: 누가, 어떤 상황에서 불편한지 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: 제안 내용
+    validations:
+      required: true
+  - type: dropdown
+    id: who
+    attributes:
+      label: 주 사용자
+      multiple: true
+      options: [재학생 회원, 졸업생, 운영진, 비회원·방문자]

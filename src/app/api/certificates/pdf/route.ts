@@ -100,7 +100,9 @@ export async function POST(req: NextRequest) {
     const fullHtml = buildHtml(html, styles, fileName, origin);
     browser = await getBrowser();
     const page = await browser.newPage();
-    await page.setContent(fullHtml, { waitUntil: ["load", "networkidle0"] });
+    // puppeteer 24.43+: setContent 는 load/domcontentloaded 만 허용 → 네트워크 유휴는 별도 대기
+    await page.setContent(fullHtml, { waitUntil: "load" });
+    await page.waitForNetworkIdle({ idleTime: 500, timeout: 30_000 });
     // 이미지 완전 로드 대기
     await page.evaluate(async () => {
       const imgs = Array.from(document.images);
